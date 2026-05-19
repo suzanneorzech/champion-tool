@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Champion Validation Tool — Klaviyo CS</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #FAF7F2;
+  color: #1A1A1A;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── HEADER ─── */
+.header {
+  background: #F45B47;
+  color: white;
+  padding: 20px 28px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.header-left p { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+.klaviyo-logo { font-size: 17px; font-weight: 800; color: white; opacity: 0.9; letter-spacing: -0.5px; white-space: nowrap; }
+
+.progress-wrap { background: rgba(255,255,255,0.25); height: 4px; }
+.progress-fill { background: #F5E642; height: 4px; transition: width 0.4s ease; width: 0%; }
+
+/* ─── MAIN LAYOUT ─── */
+.main { max-width: 700px; margin: 0 auto; padding: 28px 20px 60px; }
+
+/* ─── INSTRUCTION CARD ─── */
+.instruction-card {
+  background: white;
+  border: 2px solid #1A1A1A;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 24px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #444;
+}
+.instruction-card strong { color: #1A1A1A; display: block; font-size: 14px; margin-bottom: 3px; }
+
+/* ─── QUESTION CARD ─── */
+.question-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 24px 22px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  animation: fadeUp 0.3s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.q-step { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #F45B47; margin-bottom: 10px; }
+.q-text { font-size: 19px; font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
+.q-hint { font-size: 13px; color: #777; line-height: 1.55; font-style: italic; margin-bottom: 24px; }
+
+.btn-group { display: flex; flex-direction: column; gap: 10px; }
+.btn {
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.15s;
+}
+.btn-yes { background: #F45B47; color: white; border-color: #F45B47; }
+.btn-yes:hover { background: #e04a38; transform: translateX(3px); }
+.btn-no  { background: white; color: #1A1A1A; border-color: #ddd; }
+.btn-no:hover  { border-color: #1A1A1A; transform: translateX(3px); }
+.btn-icon { font-size: 17px; width: 26px; text-align: center; flex-shrink: 0; }
+
+.back-btn { background: none; border: none; font-size: 13px; color: #bbb; cursor: pointer; padding: 10px 0 0; }
+.back-btn:hover { color: #777; }
+
+.breadcrumb { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.crumb { font-size: 11px; color: #aaa; background: white; padding: 3px 8px; border-radius: 4px; border: 1px solid #eee; }
+.crumb.current { background: #F45B47; color: white; border-color: #F45B47; }
+.crumb-arr { color: #ccc; font-size: 10px; }
+
+/* ─── RESULT CARD ─── */
+.result-card {
+  border-radius: 16px;
+  padding: 26px 24px 22px;
+  animation: fadeUp 0.35s ease;
+  margin-bottom: 0;
+}
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.result-title  { font-size: 26px; font-weight: 800; line-height: 1.2; margin-bottom: 8px; }
+.result-body   { font-size: 14px; line-height: 1.6; margin-bottom: 16px; opacity: 0.88; }
+.result-divider{ height: 1.5px; background: currentColor; opacity: 0.15; margin: 14px 0; }
+.result-signals-label { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; opacity: 0.55; margin-bottom: 8px; }
+.result-signals { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.result-signals li { font-size: 13.5px; line-height: 1.5; padding-left: 18px; position: relative; }
+.result-signals li::before { content: '→'; position: absolute; left: 0; font-weight: 700; }
+.result-action-box { background: rgba(0,0,0,0.07); border-radius: 10px; padding: 14px 16px; font-size: 13.5px; line-height: 1.6; }
+.result-action-box strong { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 5px; opacity: 0.55; }
+
+/* result themes */
+.t-champion { background: #1A1A1A; color: white; }
+.t-champion .result-badge { background: #F5E642; color: #1A1A1A; }
+.t-coach     { background: #E8F4F0; color: #1A1A1A; }
+.t-coach .result-badge    { background: #2A9D7F; color: white; }
+.t-friend    { background: #FFF3E0; color: #1A1A1A; }
+.t-friend .result-badge   { background: #FF9800; color: white; }
+.t-weakling  { background: #F3E5F5; color: #1A1A1A; }
+.t-weakling .result-badge { background: #9C27B0; color: white; }
+.t-supersales{ background: #FFEBEE; color: #1A1A1A; }
+.t-supersales .result-badge { background: #E53935; color: white; }
+.t-building  { background: #FFF3E0; color: #1A1A1A; }
+.t-building .result-badge { background: #FF9800; color: white; }
+.t-partner   { background: #E3F2FD; color: #1A1A1A; }
+.t-partner .result-badge  { background: #1565C0; color: white; }
+
+/* ─── ACTIONS SECTION ─── */
+.actions-section { margin-top: 28px; animation: fadeUp 0.4s ease; }
+
+.actions-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.actions-header-line { flex: 1; height: 1.5px; background: #e0dbd3; }
+.actions-header-text { font-size: 13px; font-weight: 700; color: #aaa; letter-spacing: 0.3px; white-space: nowrap; }
+
+.path-intro {
+  background: white;
+  border-left: 4px solid #F45B47;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.path-intro strong { display: block; font-size: 11px; font-weight: 700; color: #F45B47; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px; }
+
+.missing-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.missing-pill {
+  background: #FFEBEE;
+  color: #C62828;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.3px;
+}
+.missing-label { font-size: 11px; font-weight: 700; color: #aaa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+
+.steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; min-width: 0; }
+@media (max-width: 540px) { .steps-grid { grid-template-columns: 1fr; } }
+
+.step-card {
+  background: #FAF7F2;
+  border: 1.5px solid #ece7df;
+  border-radius: 10px;
+  padding: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.step-card:hover { border-color: #F45B47; box-shadow: 0 2px 8px rgba(244,91,71,0.1); }
+
+.step-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 7px; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #F45B47; color: white;
+  font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.step-title { font-size: 13.5px; font-weight: 700; line-height: 1.3; flex: 1; min-width: 0; }
+
+.step-body { font-size: 12.5px; color: #555; line-height: 1.55; margin-bottom: 9px; }
+.step-say {
+  background: white;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.5;
+  font-style: italic;
+}
+.step-say strong { font-style: normal; font-size: 10px; font-weight: 700; color: #F45B47; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+
+.kpi-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 9px; }
+.kpitag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: #edeae4; color: #666; }
+
+.warn-box {
+  background: #FFF8E1;
+  border: 1.5px solid #FFD54F;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #5D4037;
+  margin-top: 4px;
+}
+.warn-box strong { color: #E65100; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 4px; }
+
+.restart-btn {
+  margin-top: 28px;
+  background: #1A1A1A;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.restart-btn:hover { background: #333; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Champion Validation Tool</h1>
+    <p>Identify your contact type — then get your action plan</p>
+  </div>
+  <div class="klaviyo-logo">klaviyo▪</div>
+</div>
+<div class="progress-wrap"><div class="progress-fill" id="pbar"></div></div>
+
+<div class="main">
+  <div class="instruction-card">
+    <strong>📋 How to use this</strong>
+    Think of one specific person at a customer account — someone you'd consider a potential champion. Answer each question based on what you've <em>actually observed</em>. No guessing. At the end, you'll get a clear read on what they are — and exactly what to do next.
+  </div>
+  <div id="root"></div>
+</div>
+
+<script>
+// ── DECISION TREE DATA ──────────────────────────────────────────────
+const Q = {
+  q0: {
+    text: "Is this a brand whose Klaviyo account is managed day-to-day by an agency — where you haven't had a direct relationship with the brand yet?",
+    hint: "Think: any account where an agency operates Klaviyo on behalf of the brand and you don't yet have a direct relationship with the brand. If you work directly with the brand or customer company, answer No.",
+    yes: 'partner', yesLabel: "Yes — agency manages this account and I'm new to the relationship",
+    no:  'q1',      noLabel:  "No — I have a direct relationship with the customer"
+  },
+  q1: {
+    text: "When this person speaks in a group meeting, do others stop and pay attention?",
+    hint: "Think about their last QBR, steering call, or cross-functional meeting. Do senior people react to their input — or keep talking?",
+    yes: 'q2', yesLabel: "Yes — they clearly carry weight in the room",
+    no:  'q3', noLabel:  "No — people don't really defer to them"
+  },
+  q2: {
+    text: "Have they actively worked to get you in front of senior leadership or the executive buying team?",
+    hint: "Not 'they said they would.' Have they actually scheduled it, coached you before it, or personally walked leadership through your value?",
+    yes: 'q4', yesLabel: "Yes — they've opened or are actively opening doors",
+    no:  'q5', noLabel:  "No — hasn't happened despite the relationship"
+  },
+  q3: {
+    text: "Do they share the hard stuff — internal politics, risks to the deal, competitive activity, or bad news?",
+    hint: "A real ally gives you information that could hurt them if it got out. Do they trust you with the messy reality?",
+    yes: 'q6', yesLabel: "Yes — they tell me things I couldn't find out elsewhere",
+    no:  'q7', noLabel:  "No — everything is surface-level positive"
+  },
+  q4: {
+    text: "Does this person have a clear personal win tied to this deal — a promotion, a strategic initiative, or a career goal they can't hit without it?",
+    hint: "Not just 'they want the project to succeed.' Is their livelihood, reputation, or career advancement on the line?",
+    yes: 'q8',   yesLabel: "Yes — they have real skin in the game",
+    no:  'coach', noLabel:  "No — they want us to win, but it's not personal for them"
+  },
+  q5: {
+    text: "Do they talk confidently about major company transformation projects and regularly name-drop the C-suite as sponsors?",
+    hint: "They've got an impressive pitch about what leadership is focused on — but when you push on decisions or timelines, things get vague.",
+    yes: 'weakling', yesLabel: "Yes — lots of big talk, ambitious framing",
+    no:  'coach',    noLabel:  "No — they're helpful but modest about their reach"
+  },
+  q6: {
+    text: "When you ask them to make something happen — an introduction, a decision, access to a key meeting — do they actually deliver?",
+    hint: "Not 'they try really hard.' Do things actually move when they're involved? Or do they hit a wall every time?",
+    yes: 'q4',  yesLabel: "Yes — they get things done",
+    no:  'coach', noLabel: "No — they want to help but hit a ceiling every time"
+  },
+  q7: {
+    text: "Do they respond to everything quickly, agree with everything you say, and seem equally warm to everyone — including your competitors?",
+    hint: "They're enthusiastic, they make intros freely, they love the product. But there's no tension, no pushback, and no exclusivity.",
+    yes: 'friend', yesLabel: "Yes — they're just really… nice to everyone",
+    no:  'q7b',   noLabel:  "No — they're not super engaged with me at all"
+  },
+  q7b: {
+    text: "Do they rarely return your calls, seem to want information more than a relationship, and aren't including you in key meetings?",
+    hint: "They were enthusiastic early. But lately they're hard to reach — and when you connect, they pump you for info without giving much back.",
+    yes: 'supersales', yesLabel: "Yes — I'm basically chasing them at this point",
+    no:  'friend',     noLabel:  "No — they're engaged but not a power player"
+  },
+  q8: {
+    text: "Have they challenged your thinking, pushed back on your plan, or flagged risks that could hurt Klaviyo's position — even when it was uncomfortable?",
+    hint: "A real champion is invested enough to tell you the truth. 'Your timeline is unrealistic.' 'The CFO won't go for that framing.' Have you heard anything like this?",
+    yes: 'champion', yesLabel: "Yes — they've pushed back in ways that actually helped me",
+    no:  'q9',       noLabel:  "No — they're supportive but haven't challenged anything"
+  },
+  q9: {
+    text: "Do they consistently show up — attend your calls, prepare with you before meetings, coach you on internal dynamics — even if they haven't unlocked the EB yet?",
+    hint: "They're doing the work. They may not have the juice to get you in the room yet — but they're trying, and they're honest about it.",
+    yes: 'coach',    yesLabel: "Yes — they're reliable and share what they know",
+    no:  'building', noLabel:  "No — the engagement is inconsistent or transactional"
+  }
+};
+
+// ── RESULT DATA ──────────────────────────────────────────────────────
+const R = {
+  champion: {
+    theme: 't-champion',
+    badge: '🏆 TRUE CHAMPION',
+    title: "This is your Champion.",
+    body: "They have power, a personal stake, EB access, and they've told you hard truths. This is the real thing. Now protect it, leverage it, and make sure they feel the return on their investment in you.",
+    signals: ["Respected by the org — others defer to them", "Actively working to get you to the EB", "Has a personal win tied to this deal", "Challenges you when you're off-track"],
+    action: "Test them further: ask them to present the business case internally, coach you before the next exec meeting, and share the org chart. A true Champion will lean in — fast.",
+    contextBanner: { label: "You have the real thing — now leverage it.", body: "The actions below will help you protect this relationship, deepen the champion's investment, and turn them into your most powerful asset at renewal and expansion." }
+  },
+  coach: {
+    theme: 't-coach',
+    badge: '🧭 COACH',
+    title: "This is a Coach — not a Champion (yet).",
+    body: "They're your best internal ally and a valuable source of intel. They want you to win. But they can't make it happen on their own — they don't have the organizational influence.",
+    signals: ["Shares intel, bad news, and political context", "Answers your calls and attends meetings", "Wants to help, but hits walls when it matters", "Doesn't have access or real sway with the EB"],
+    action: "Use them to identify who in the org actually does have power. Ask directly: 'Who do I need to know to make this happen?' Don't mistake a great Coach for a Champion.",
+    contextBanner: { label: "Close — but not there yet.", body: "A Coach is a gift. Use the actions below to find their personal win, elevate their visibility, and test whether they can grow into the Champion role — or help you find someone who can." }
+  },
+  friend: {
+    theme: 't-friend',
+    badge: '😊 THE FRIEND',
+    title: "This is a Friend — not a Champion.",
+    body: "They like you. They like Klaviyo. They'll say great things about you to anyone — including your competitors. There's no joint interest and no accountability when things get hard.",
+    signals: ["Agrees with everything, never pushes back", "Shares info freely — with you AND your competition", "Won't flag risks or surface bad news", "No personal stake in the outcome"],
+    action: "Ask yourself: 'If this deal fell apart tomorrow, what would they lose?' If the answer is nothing, you need to find someone who actually has something at stake.",
+    contextBanner: { label: "Goodwill isn't enough.", body: "The actions below will help you either find this person's personal win (which could turn them into more) — or identify who in the org you should be building toward instead." }
+  },
+  weakling: {
+    theme: 't-weakling',
+    badge: '🙈 THE WEAKLING',
+    title: "This is a Weakling.",
+    body: "They talk like a Champion, but they're not. The big project language and C-suite name-dropping is real — they just aren't steering any of it.",
+    signals: ["Talks about transformation and executive priorities", "Takes every meeting with an ambitious agenda", "No decisions get made when they're involved", "Budget, timeline, and contracts are 'above their level'"],
+    action: "Stop spending your primary energy here. Use them to get higher: 'Given how strategic this is, should we get [CFO / CTO] involved directly?' Then find the person who actually owns the problem.",
+    contextBanner: { label: "Don't get stuck here.", body: "The Weakling is a stepping stone, not a destination. Use the actions below to build the case for going higher — and to identify who in the org actually has power and skin in the game." }
+  },
+  supersales: {
+    theme: 't-supersales',
+    badge: '🚀 SUPER-SALESPERSON',
+    title: "This is a Super-Salesperson.",
+    body: "They were excited early. Maybe they still are — for everyone. They're collecting information and options, not building a deal. They might already be your competitor's champion.",
+    signals: ["Hard to reach; doesn't return calls consistently", "Extracts information without committing to anything", "Never gets you into the rooms where decisions are made", "Potentially warm to your competition too"],
+    action: "Don't chase them — it signals you have no other options. Find someone else in the org whose livelihood is tied to this problem being solved. That's your path forward.",
+    contextBanner: { label: "Stop chasing. Start building.", body: "Use the actions below to re-anchor around value, find the real decision-maker, and build a path that doesn't depend on someone who isn't all in." }
+  },
+  partner: {
+    theme: 't-partner',
+    badge: '🤝 AGENCY-MANAGED ACCOUNT',
+    title: "There's a layer between you and the brand.",
+    body: "This is an account where an agency operates in Klaviyo on behalf of the brand. You're starting from arm's length. You need a champion at the agency who opens doors — and a champion at the brand who owns outcomes. Build both.",
+    signals: ["Agency is the day-to-day Klaviyo operator — not the brand itself", "CSM is new to this relationship with no warm handoff", "Brand may not know who their CSM is or what they do", "Risk: agency may be a great champion — or a comfortable gatekeeper"],
+    action: "Start with the agency. Are they actively managing toward the brand's business outcomes — or just executing sends? That question tells you whether they're a champion or a blocker. Then use the steps below to build trust at both levels.",
+    contextBanner: { label: "Two-level champion strategy required.", body: "You need a champion at the agency who will open doors — and a champion at the brand who is invested in outcomes. Use the steps below to build both, starting with the agency relationship." }
+  },
+  building: {
+    theme: 't-building',
+    badge: '🔍 STILL BUILDING',
+    title: "No clear Champion yet.",
+    body: "The relationship hasn't developed enough to call it anything specific. What it means is: you need to keep prospecting until you find someone with power AND skin in the game.",
+    signals: ["Engagement is inconsistent or transactional", "No evidence of organizational influence", "No clear personal win identified", "Not consistently showing up for you"],
+    action: "Go back to basics: Who in this org loses sleep over the biggest problem you solve? Find that person — their livelihood is connected to solving it. That's where your Champion lives.",
+    contextBanner: { label: "Go back to discovery.", body: "The actions below will help you find the right person and start building the relationship in the right direction from the start." }
+  }
+};
+
+// ── PATH TO CHAMPION DATA (persona-specific) ──────────────────────────
+const PATHS = {
+  partner: {
+    intro: "This is an account where an agency operates in Klaviyo on behalf of the brand. You're starting from arm's length — and you need a champion at both levels.",
+    missing: ["Direct Brand Relationship", "Champion at Brand Level"],
+    steps: [
+      { n:1, title: "Diagnose: Champion or Gatekeeper?",
+        body: "Is the agency working for the brand's outcomes — or protecting their own position? A champion agency shares brand intel and welcomes you in. A gatekeeper controls access.",
+        say: "\"I want to make sure we're delivering real business outcomes for [brand] — not just platform usage. Can you help me understand what success looks like for them beyond opens and clicks?\"",
+        kpis: ['Retention', 'Gross Churn'] },
+      { n:2, title: "Build the agency's personal win",
+        body: "The agency's business depends on client retention. When Klaviyo performs, they retain the client, win referrals, and build a case study. Find that commercial stake and make it explicit.",
+        say: "\"What does a strong result on this account do for your agency relationship with [brand]? I want to make sure we're set up to deliver something you can point to.\"",
+        kpis: ['NRR', 'Cross Sell'] },
+      { n:3, title: "Position as additive — not a threat",
+        body: "Be transparent: your goal is to make them the hero with their client — not to replace their role.",
+        say: "\"My goal is to make you the agency that gets results from Klaviyo. The more visible the impact, the better it reflects on you. How do we build that story together?\"",
+        kpis: ['Retention', 'Sentiment'] },
+      { n:4, title: "Ask the agency to open the door to the brand",
+        body: "Once trust is established, ask for an introduction to the brand's key stakeholder. Frame it as a shared success conversation. A genuine agency champion says yes. A gatekeeper finds a reason to delay.",
+        say: "\"I'd love a brief intro call with someone on the [brand] team — just to understand their goals directly. Would you be comfortable making that introduction?\"",
+        kpis: ['NRR', 'Gross Churn'] },
+      { n:5, title: "Build a direct champion at the brand",
+        body: "Apply the full champion-building framework at the brand level. Find the person with power and personal stake. That direct relationship is your long-term protection if the agency relationship ever changes.",
+        say: "\"Who at [brand] is most personally invested in their marketing performance this year? I want to make sure we're showing up at the level that matters to them.\"",
+        kpis: ['Gross Churn', 'NRR'] }
+    ],
+    warn: "If the agency consistently blocks direct access to the brand — even after you've positioned as additive — that's a risk signal. An agency that won't let you talk to the customer may be hiding performance issues or account dissatisfaction. Escalate internally."
+  },
+  coach: {
+    intro: "Close — but not there yet. A Coach has the intel and the goodwill. What's missing is EB access and a strong enough personal stake to take real risks for you.",
+    missing: ["EB Access", "Personal Win (not yet locked in)"],
+    steps: [
+      { n:1, title: "Lock in their Personal Win",
+        body: "Find exactly what success looks like for them personally — career, recognition, budget. No personal stake = no champion.",
+        say: "\"What does success look like for YOU in the next 12 months? Not the company — you specifically.\"",
+        kpis: ['Retention', 'Sentiment'] },
+      { n:2, title: "Give them language to escalate internally",
+        body: "Coach them on the value narrative so they can walk into a leadership meeting and own it without you in the room.",
+        say: "\"Here's how I'd frame Klaviyo's impact to your VP — outcomes, not features. Want to pressure-test this?\"",
+        kpis: ['ROI', 'Gross Churn'] },
+      { n:3, title: "Ask for the EB introduction — directly",
+        body: "This is the test. Ask them to set up a meeting with the Economic Buyer (EB). How they respond reveals their actual influence.",
+        say: "\"Would you be willing to set up 20 minutes with [EB]? I'll handle the full agenda — just need the intro.\"",
+        kpis: ['NRR', 'Gross Churn'] },
+      { n:4, title: "Build the EBR together so they can own it",
+        body: "They should be able to present the KL value story during an EBR, instead of you. Build it together — their name on it, their narrative.",
+        say: "\"Can we spend 30 minutes building something we can present together to your leadership?\"",
+        kpis: ['ROI', 'NRR'] },
+      { n:5, title: "Make them look smart in front of their leadership",
+        body: "Give them early product access, data wins, peer introductions. Get them into KL Events and have them include their leadership. When their credibility grows because of you, their investment in Klaviyo grows too.",
+        say: "\"We're running a beta for [XYZ feature] and I'd love to get your team involved. Your feedback will directly shape how it develops — and early access means you're ahead of the curve on [specific business goal], which will impress your leadership\"",
+        kpis: ['Sentiment', 'Cross Sell'] }
+    ],
+    warn: "If they can't get you in front of the EB after 2–3 real tests, they may never have that influence. It's not failure — it's information. Build additional relationships in the org."
+  },
+  friend: {
+    intro: "A Friend is engagement without stakes. They're loyal to everyone — including your competition. What's missing is personal investment, real influence, and the willingness to take a risk for you.",
+    missing: ["Personal Win", "Organizational Power", "Willingness to Challenge"],
+    steps: [
+      { n:1, title: "Find their Personal Win — immediately",
+        body: "Right now if this deal fails, they lose nothing. Dig into what they're actually trying to achieve this year — career, budget, recognition.",
+        say: "\"What's your #1 business goal for this year? How is the work you're doing going to impact this goal? How can KL help you achieve it?\"",
+        kpis: ['Retention', 'Sentiment'] },
+      { n:2, title: "Test their real influence with a specific ask",
+        body: "Ask them to make one concrete thing happen — an introduction, a decision, access to a meeting. Their response tells you if there's champion potential here.",
+        say: "\"Can you get me 20 minutes with [EB]? I'll build the full agenda — just need you to make the intro.\"",
+        kpis: ['Gross Churn', 'NRR'] },
+      { n:3, title: "Give them something to own — with stakes",
+        body: "Ask them to sponsor an initiative or activity and own the outcome. Real champions step up when there's something on the line. Friends back away.",
+        say: "\"I'd like you to sponsor [X] internally — own the outcome and present the results to your leadership.\"",
+        kpis: ['Cross Sell', 'Retention'] },
+      { n:4, title: "Help them gain visibility with leadership",
+        body: "Give them data wins and framing they can bring upward. If they get recognized because of Klaviyo, they become invested in Klaviyo's success.",
+        say: "\"Here's a result your team drove that your VP should know about — want help framing it for your next update?\"",
+        kpis: ['ROI', 'Sentiment'] },
+      { n:5, title: "If they can't grow — ask who can",
+        body: "Not everyone can become a champion. If they consistently can't deliver on real asks, use their goodwill to find someone who can.",
+        say: "\"Who in your organization is most closely tied to the outcome of this initiative? Would you be able to set up a quick call for us so that we could speak to them together?\"",
+        kpis: ['Gross Churn', 'NRR'] }
+    ],
+    warn: "A Friend who gets a promotion or recognition because of Klaviyo often becomes a Champion. Invest in making them look good — but keep testing whether they can actually deliver on hard asks."
+  },
+  weakling: {
+    intro: "A Weakling has ambition but not authority. They talk like a Champion but nothing moves when they're involved. The path forward is through them — not with them as the destination.",
+    missing: ["Actual Decision-Making Authority", "Budget/Timeline Ownership"],
+    steps: [
+      { n:1, title: "Test their power with one real ask — now",
+        body: "Stop theorizing about their influence. Ask them to own one specific decision by a specific date. Their response tells you everything.",
+        say: "\"Can you get the budget approved by [X date]? What do you need from me to make that happen?\"",
+        kpis: ['Gross Churn', 'Retention'] },
+      { n:2, title: "Help them build a quick win to take upward",
+        body: "Give them a compelling ROI result or data point they can share with leadership. If their credibility grows, so does their influence — and so does your access.",
+        say: "\"Here's something worth bringing to your VP — it maps directly to your business goals this quarter. I'd love for you to present this at our next EBR with your VP present.\"",
+        kpis: ['ROI', 'Sentiment'] },
+      { n:3, title: "Ask directly who actually owns the decision",
+        body: "Frame it as wanting the right people involved. They'll tell you if you ask clearly. Then go build that relationship.",
+        say: "\"Who ultimately signs off on budget and timeline for something like this? I want to make sure we're not missing anyone. Would you please connect us?\"",
+        kpis: ['NRR', 'Gross Churn'] },
+      { n:4, title: "Use their goodwill to open doors above them",
+        body: "They want to help — let them. Ask for the upward introduction with their blessing. Their ambition makes them a useful door-opener.",
+        say: "\"Given how strategic this is, would it make sense for the three of us to get on a call with [exec]?\"",
+        kpis: ['NRR', 'Cross Sell'] },
+      { n:5, title: "Be honest about the ceiling",
+        body: "If they can't get you above their level after two or three real tests, your energy is better spent building a different relationship in this org.",
+        say: "\"I really value our relationship — and I want to make sure we're getting the right people involved to set your business up for success. Who else should be looped in on this?\"",
+        kpis: ['Gross Churn', 'Retention'] }
+    ],
+    warn: "Every conversation with a Weakling should end with you closer to real power — or with a clearer picture of who actually has it."
+  },
+  supersales: {
+    intro: "A Super-Salesperson has gone cold. The early excitement has faded — or they're spreading it around. What's missing is commitment, exclusivity, and a personal stake that makes Klaviyo the obvious choice.",
+    missing: ["Commitment", "Personal Investment", "Exclusivity"],
+    steps: [
+      { n:1, title: "Stop chasing — change the dynamic",
+        body: "Chasing \"signals\" gives you no other options. Instead, present a time-bound opportunity that requires a decision. Urgency reveals whether a champion is in there.",
+        say: "\"We have a window to [X opportunity] — but I need a decision by [X date]. Are you still the right person to drive this?\"",
+        kpis: ['Gross Churn', 'NRR'] },
+      { n:2, title: "Diagnose why they've disengaged",
+        body: "Something changed. Find out what before assuming the relationship is dead. Overloaded? Lost internal support? Competing priority?",
+        say: "\"It's been harder to connect lately — is now still the right time, or has something shifted on your end?\"",
+        kpis: ['Retention', 'Sentiment'] },
+      { n:3, title: "Find their Personal Win — fast",
+        body: "If there's no personal stake, there's no path. What are they trying to prove, protect, or accomplish? Find the career-level reason to commit.",
+        say: "\"Forget the product for a second — what would a win on this initiative do for you professionally?\"",
+        kpis: ['Cross Sell', 'NRR'] },
+      { n:4, title: "Re-anchor on their original problem",
+        body: "Strip away the product conversation. Reconnect to the pain that started this. If the problem is still real and unsolved, the urgency should still be there.",
+        say: "\"The [X problem] that started our conversation — has it been solved? Because if not, the cost of inaction is only getting higher.\"",
+        kpis: ['ROI', 'Gross Churn'] },
+      { n:5, title: "If they won't re-engage — ask who will",
+        body: "Don't waste time. Ask directly who the right person is and go build that relationship.",
+        say: "\"If you're not the right person to drive this forward right now, who is? I'd rather know now than waste both our time.\"",
+        kpis: ['Gross Churn', 'NRR'] }
+    ],
+    warn: "Every follow-up without a clear ask makes you easier to ignore. Make the next conversation count — or redirect your energy to someone with real skin in the game."
+  },
+  champion: {
+    intro: "You have the real thing. Now protect it, leverage it, and make sure this person feels the return on their investment in you. Champions who aren't invested in go soft.",
+    missing: [],
+    steps: [
+      { n:1, title: "Invest in their Personal Win",
+        body: "They've shown up for you — return the favor. Help them get recognition, get visibility, and win internally. When their career advances because of you, the relationship becomes unbreakable.",
+        say: "\"What's coming up for you this quarter? Where and how can I and Klaviyo help you win?\"",
+        kpis: ['Retention', 'Sentiment'] },
+      { n:2, title: "Use them to reach — and prep for — the EB",
+        body: "Ask them to set up the executive meeting, brief leadership on the business case, and coach you on the politics before you walk in.",
+        say: "\"Can you brief me on who's in the room and what each person cares about most? I want to walk in fully prepared.\"",
+        kpis: ['NRR', 'Cross Sell'] },
+      { n:3, title: "Keep making deposits — consistently. Maintain the trust & relationship",
+        body: "Complete every commitment on time. Bring data proactively. Prep for every EBR together. Consistent small actions fill the Bank of Champions faster than grand gestures.",
+        say: "\"Your Q2 EBR is coming up — here's the impact summary. Let me know if you want to adjust the framing before you take it to leadership.\"",
+        kpis: ['ROI', 'Retention'] },
+      { n:4, title: "Give them exclusivity — keep them ahead",
+        body: "Give them early product access or peer introductions and market insights. Have them at events as an attendee or speaker. Be the CSM who makes them the smartest person in any room. When they're ahead because of you, they protect you.",
+        say: "\"I'm sharing something with a small group of strategic customers before it goes public — you should be one of them.\" \"We'd love to have you join us as a panelist for [X event] to share your expertise on [XYZ].\"",
+        kpis: ['Cross Sell', 'Sentiment'] },
+      { n:5, title: "Test them regularly to keep the relationship strong",
+        body: "Ask them to block competitive evaluations, introduce you to internal detractors, or own a business case presentation. Champions who aren't tested go soft.",
+        say: "\"There's some internal skepticism about [X] — are you in a position to speak to it? I'd rather have you in the room on this one.\"",
+        kpis: ['Gross Churn', 'NRR'] }
+    ],
+    warn: null
+  },
+  building: {
+    intro: "No clear champion yet — and that's the real problem to solve. Before you can build a champion, you have to find the right person to build with.",
+    missing: ["Right Contact Identified", "Power + Personal Stake"],
+    steps: [
+      { n:1, title: "Start with the problem, not the person",
+        body: "Who in this org loses sleep over the biggest problem Klaviyo solves? Find that person first. The right champion is defined by what they stand to lose — not their title.",
+        say: "\"What's the one business problem that, if it went unsolved, would be a serious problem for someone on the leadership team?\"",
+        kpis: ['Gross Churn', 'NRR'] },
+      { n:2, title: "Map who owns the decision",
+        body: "Find out who controls budget, who influences the outcome, and who has the most to lose. Build a picture of the org before you commit your energy to one person.",
+        say: "\"Help me understand — who owns the final call on budget and platform decisions like this?\"",
+        kpis: ['Retention', 'NRR'] },
+      { n:3, title: "Look for people on the rise",
+        body: "Champions are often recently promoted, newly assigned to a strategic initiative, or given expanded scope. They have ambition, momentum, and something to prove.",
+        say: "\"Who's been given new responsibility around [relevant initiative] recently? That's who I should probably be talking to.\"",
+        kpis: ['Cross Sell', 'Retention'] },
+      { n:4, title: "Use your existing contact to navigate higher",
+        body: "Even a weak contact can point you in the right direction. Ask them directly who in the org is most focused on the outcome Klaviyo drives.",
+        say: "\"Who in your org is most personally invested in solving [the problem]? I want to make sure we're connected to the right people.\"",
+        kpis: ['Gross Churn', 'NRR'] },
+      { n:5, title: "Build breadth before going deep",
+        body: "Don't invest everything in one contact until you've validated they have both power and personal stake. Multi-thread until a real champion emerges from the process.",
+        say: "\"I'd love to understand your business from a few different angles — would it make sense to connect with [another stakeholder] at some point?\"",
+        kpis: ['Retention', 'Gross Churn'] }
+    ],
+    warn: "Don't skip this step by defaulting to whoever responds fastest. The most responsive person is rarely the most powerful one. Find the right person, then build."
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let history = [];
+let current = 'q0';
+const TOTAL = 9;
+
+// ── RENDER ────────────────────────────────────────────────────────────
+function render() {
+  document.getElementById('pbar').style.width = Math.min((history.length / TOTAL) * 100, 90) + '%';
+  const root = document.getElementById('root');
+
+  if (R[current]) {
+    document.getElementById('pbar').style.width = '100%';
+    root.innerHTML = buildResult(current);
+    return;
+  }
+
+  const q = Q[current];
+  let bc = '';
+  if (history.length > 0) {
+    bc = '<div class="breadcrumb">';
+    history.forEach((_, i) => bc += `<span class="crumb">Q${i+1}</span><span class="crumb-arr">›</span>`);
+    bc += `<span class="crumb current">Q${history.length + 1}</span></div>`;
+  }
+
+  root.innerHTML = `${bc}
+    <div class="question-card">
+      <div class="q-step">Question ${history.length + 1}</div>
+      <div class="q-text">${q.text}</div>
+      <div class="q-hint">${q.hint}</div>
+      <div class="btn-group">
+        <button class="btn btn-yes" onclick="answer('yes')">
+          <span class="btn-icon">✓</span><span>${q.yesLabel}</span>
+        </button>
+        <button class="btn btn-no" onclick="answer('no')">
+          <span class="btn-icon">✗</span><span>${q.noLabel}</span>
+        </button>
+      </div>
+      ${history.length > 0 ? '<button class="back-btn" onclick="goBack()">← Go back</button>' : ''}
+    </div>`;
+}
+
+function answer(c) {
+  const q = Q[current];
+  history.push({ q: current, c });
+  current = c === 'yes' ? q.yes : q.no;
+  render();
+}
+
+function goBack() {
+  history.pop();
+  current = 'q1';
+  history.forEach(h => {
+    const q = Q[current];
+    current = h.c === 'yes' ? q.yes : q.no;
+  });
+  // Replay to correct position
+  const saved = [...history];
+  current = 'q1'; history = [];
+  saved.forEach(h => {
+    history.push({ q: current, c: h.c });
+    current = h.c === 'yes' ? Q[current].yes : Q[current].no;
+  });
+  render();
+}
+
+function restart() { history = []; current = 'q1'; render(); }
+
+// ── BUILD RESULT HTML ─────────────────────────────────────────────────
+function buildResult(key) {
+  const r = R[key];
+  const p = PATHS[key];
+  const headerText = key === 'champion' ? '↓ Leverage & Maintain Your Champion' : key === 'partner' ? '↓ Your Two-Level Champion Strategy' : '↓ Your Path to Champion';
+
+  return `
+    <div class="result-card ${r.theme}">
+      <div class="result-badge">${r.badge}</div>
+      <div class="result-title">${r.title}</div>
+      <div class="result-body">${r.body}</div>
+      <div class="result-divider"></div>
+      <div class="result-signals-label">What you're seeing</div>
+      <ul class="result-signals">${r.signals.map(s => `<li>${s}</li>`).join('')}</ul>
+      <div class="result-action-box"><strong>Immediate next move</strong>${r.action}</div>
+    </div>
+
+    <div class="actions-section">
+      <div class="actions-header">
+        <div class="actions-header-line"></div>
+        <div class="actions-header-text">${headerText}</div>
+        <div class="actions-header-line"></div>
+      </div>
+
+      <div class="path-intro">
+        <strong>${key === 'champion' ? 'You have the real thing. Here\'s how to keep it.' : key === 'partner' ? 'Agency-managed account: here\'s how to navigate it.' : 'What\'s missing — and how to close the gap'}</strong>
+        ${p.intro}
+        ${p.missing.length > 0 ? `<div style="margin-top:10px"><div class="missing-label">Missing for true champion status</div><div class="missing-pills">${p.missing.map(m => `<span class="missing-pill">✗ ${m}</span>`).join('')}</div></div>` : ''}
+      </div>
+
+      <div class="steps-grid">
+        ${p.steps.map(s => `
+          <div class="step-card">
+            <div class="step-top">
+              <div class="step-num">${s.n}</div>
+              <div class="step-title">${s.title}</div>
+            </div>
+            <div class="step-body">${s.body}</div>
+            <div class="step-say"><strong>Say it like this</strong>${s.say}</div>
+            <div class="kpi-row">${s.kpis.map(k => `<span class="kpitag">${k}</span>`).join('')}</div>
+          </div>`).join('')}
+      </div>
+
+      ${p.warn ? `<div class="warn-box"><strong>⚠️ Watch for this</strong>${p.warn}</div>` : ''}
+
+      <button class="restart-btn" onclick="restart()">↩ Try another contact</button>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>
